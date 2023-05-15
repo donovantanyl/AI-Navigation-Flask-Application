@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Navigation App</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <form>
+      <div class="form-group">
+        <label for="vid">Select your Video to Upload</label>
+        <select class="form-control" id="vid">
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="apiKey">API Key</label>
+        <input type="text" class="form-control" id="apiKey" placeholder="Enter your Roboflow API Key">
+        <small id="apiKeyHelp" class="form-text text-muted">We'll never share your API Key with anyone else.</small>
+      </div>
+      <div class="form-group">
+        <label for="projectID">Select your Project ID</label>
+        <select class="form-control" id="projectID">
+          <option>Enter your API Key</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+
+</body>
+</html>
+<script>
+    $("#apiKey").blur(() => {
+      $("#projectID").html("")
+      getProjectIDs($("#apiKey").val())
+    })
+
+    async function getProjectIDs(apiKey) {
+      const response  = await fetch(`http://127.0.0.1:5000/projects/${apiKey}`)
+      const jsonData = await response.json();
+      console.log(jsonData);
+      jsonData.data.map(pid => $("#projectID").append(`<option>${pid}</option>`))
+    }
+
+    async function getVid() {
+      const response  = await fetch(`http://127.0.0.1:5000/upload`)
+      const jsonData = await response.json();
+      console.log(jsonData);
+      jsonData.data.map(pid => $("#vid").append(`<option>${pid}</option>`));
+    }
+
+    getVid();
+
+
+</script>

@@ -1,6 +1,6 @@
 # YOLOv5 🚀 by Ultralytics, AGPL-3.0 license
 """
-Run YOLOv5 classification inference on images, videos, directories, globs, YouTube, webcam, streams, etc.
+Run YOLOv5 classification inference on images, test_data, directories, globs, YouTube, webcam, streams, etc.
 
 Usage - sources:
     $ python classify/predict.py --weights yolov5s-cls.pt --source 0                               # webcam
@@ -61,7 +61,7 @@ def run(
         device='',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
         view_img=False,  # show results
         save_txt=False,  # save results to *.txt
-        nosave=False,  # do not save images/videos
+        nosave=False,  # do not save images/test_data
         augment=False,  # augmented inference
         visualize=False,  # visualize features
         update=False,  # update all models
@@ -174,7 +174,7 @@ def run(
                             h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         else:  # stream
                             fps, w, h = 30, im0.shape[1], im0.shape[0]
-                        save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
+                        save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results test_data
                         vid_writer[i] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer[i].write(im0)
 
@@ -200,7 +200,7 @@ def parse_opt():
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--view-img', action='store_true', help='show results')
     parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
-    parser.add_argument('--nosave', action='store_true', help='do not save images/videos')
+    parser.add_argument('--nosave', action='store_true', help='do not save images/test_data')
     parser.add_argument('--augment', action='store_true', help='augmented inference')
     parser.add_argument('--visualize', action='store_true', help='visualize features')
     parser.add_argument('--update', action='store_true', help='update all models')
