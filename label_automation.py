@@ -57,7 +57,7 @@ from uuid import uuid4
 
 @smart_inference_mode()
 def run(
-        weights=ROOT / 'yolov5s.pt',  # model path or triton URL
+        weights=ROOT / 'bus_v2.pt',  # model path or triton URL
         source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
         data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
         imgsz=(640, 640),  # inference size (height, width)
@@ -100,7 +100,7 @@ def run(
 
     # [WK] Create extracted image file
     timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-    os_path = f'C:\\Users\\user\\Documents\\GitHub\\AI-Navigation-Flask-Application\\extracted_images'
+    os_path = 'instance/outputs'
     img_path = f'{os_path}\\{timestamp}'
     os.mkdir(img_path)
 
@@ -214,10 +214,10 @@ def run(
                     cv2.imwrite(f'{img_path}\\{image_id}.jpg', r_im0)
                     image_count += 1
 
-            final_json = COCO(images, annotations)
-            print(final_json.return_json())
-            with open(f'{img_path}\\{image_id}.json', "w") as outfile:
-                outfile.write(json.dumps(final_json.return_json(), indent=4))
+                final_json = COCO(images, annotations)
+                print(final_json.return_json())
+                with open(f'{img_path}\\{image_id}.json', "w") as outfile:
+                    outfile.write(json.dumps(final_json.return_json(), indent=4))
 
             # Stream results
             im0 = annotator.result()
@@ -250,15 +250,7 @@ def run(
 
         # Print time (inference-only)
         LOGGER.info(f"{s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
-
-    # Print results
-    t = tuple(x.t / seen * 1E3 for x in dt)  # speeds per image
-    LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
-    if save_txt or save_img:
-        s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
-        LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
-    if update:
-        strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
+    return timestamp
 
 
 def parse_opt():

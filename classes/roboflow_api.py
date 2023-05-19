@@ -18,9 +18,5 @@ class RoboflowAPI:
         if self.__project:
             for images in os.listdir(folder_dir):
                 if images.endswith(".jpg"):
-                    self.__project.upload(f"{folder_dir}\\{images}")
-
-
-rbf_api = RoboflowAPI(api_key="DPbpbi8dRt3gmUJZLKAd")
-
-print(rbf_api.get_projects())
+                    self.__project.upload(f"{folder_dir}\\{images}", f"{folder_dir}\\{images.removesuffix('.jpg') + '.json'}")
+        return True

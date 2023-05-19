@@ -8,6 +8,8 @@ app.debug = True
 
 uploads_dir = os.path.join(app.instance_path, 'uploads')
 os.makedirs(uploads_dir, exist_ok=True)
+output_dir = os.path.join(app.instance_path, 'outputs')
+os.makedirs(output_dir, exist_ok=True)
 
 
 @app.route("/")
@@ -28,9 +30,9 @@ def training():
 
 @app.route("/projects/<api_key>", methods=['GET', 'POST'])
 def projects(api_key):
-    RoboflowAPI(api_key)
+    rbf = RoboflowAPI(api_key)
     if request.method == "GET":
-        list_projects = RoboflowAPI(api_key).get_projects()
+        list_projects = rbf.get_projects()
         return jsonify(message="Success",
                        statusCode=200,
                        data=list_projects)
@@ -38,7 +40,7 @@ def projects(api_key):
 
 @app.route("/upload", methods=['GET', 'POST'])
 def upload():
-    if request.method == "GET":
+    if request.method == "GET":  # Get all videos in the uploads folder
         vid_list = []
         for videos in os.listdir(uploads_dir):
             if videos.endswith(".mp4"):
@@ -46,6 +48,30 @@ def upload():
         return jsonify(message="Success",
                        statusCode=200,
                        data=vid_list)
+
+    if request.method == "POST":
+        fd = request.form
+        folder = fd.get("folder")
+        api_key = fd.get("apiKey")
+        project = fd.get("project")
+        print(folder, api_key, project)
+        rbf = RoboflowAPI(api_key)
+        rbf.set_project(project)
+        uploaded = rbf.upload_image(f"{output_dir}/{folder}")
+        return jsonify(message="Success",
+                       statusCode=200,
+                       data=uploaded)
+
+
+@app.route("/predict", methods=['GET', 'POST'])
+def predict():
+    if request.method == "POST":
+        vid = request.form.get("vid")
+        folder = label_automation.run(source=f"instance/uploads/{vid}")
+        print(folder)
+        return jsonify(message="Success",
+                       statusCode=200,
+                       data=folder)
 
 
 if __name__ == "__main__":
