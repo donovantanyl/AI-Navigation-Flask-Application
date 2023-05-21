@@ -1,6 +1,9 @@
-from flask import Flask, render_template, request, jsonify
-import bus_detection, label_automation
 import os
+
+from flask import Flask, render_template, request, jsonify
+
+import bus_detection
+import label_automation
 from classes.roboflow_api import RoboflowAPI
 
 app = Flask(__name__, template_folder='templates')
@@ -10,6 +13,8 @@ uploads_dir = os.path.join(app.instance_path, 'uploads')
 os.makedirs(uploads_dir, exist_ok=True)
 output_dir = os.path.join(app.instance_path, 'outputs')
 os.makedirs(output_dir, exist_ok=True)
+models_dir = os.path.join(app.instance_path, 'models')
+os.makedirs(models_dir, exist_ok=True)
 
 
 @app.route("/")
@@ -67,11 +72,24 @@ def upload():
 def predict():
     if request.method == "POST":
         vid = request.form.get("vid")
-        folder = label_automation.run(source=f"instance/uploads/{vid}")
+        model_used = request.form.get("model")
+        folder = label_automation.run(weights=f"instance/models/{model_used}", source=f"instance/uploads/{vid}")
         print(folder)
         return jsonify(message="Success",
                        statusCode=200,
                        data=folder)
+
+
+@app.route("/models", methods=['GET', 'POST'])
+def models():
+    if request.method == "GET":  # Get all models in the models folder
+        mod_list = []
+        for m in os.listdir(models_dir):
+            if m.endswith(".pt"):
+                mod_list.append(m)
+        return jsonify(message="Success",
+                       statusCode=200,
+                       data=mod_list)
 
 
 if __name__ == "__main__":

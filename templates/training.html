@@ -17,6 +17,12 @@
         </select>
         <small id="nameHelp" class="form-text text-muted">Upload your videos to instance/uploads folder.</small>
     </div>
+    <div class="form-group">
+      <label for="model">Select your Model to run auto-labelling</label>
+      <select class="form-select" id="model" name="model">
+      </select>
+      <small id="nameHelp" class="form-text text-muted">Upload your models to instance/models folder.</small>
+  </div>
     <button type="button" id="predictBtn" class="btn btn-primary">Start Label</button>
     <br>
     <div class="spinner-border text-primary" role="status" id="spinnerLoading">
@@ -63,14 +69,25 @@
       const jsonData = await response.json();
       jsonData.data.map(pid => $("#vid").append(`<option value="${pid}">${pid}</option>`));
     }
+
+    async function getModel() {
+      const response  = await fetch(`http://127.0.0.1:5000/models`)
+      const jsonData = await response.json();
+      jsonData.data.map(pid => $("#model").append(`<option value="${pid}">${pid}</option>`));
+    }
+
     getVid();
+    getModel();
+
     $("#spinnerLoading").hide();
     $("#postForm").hide();
 
     $("#predictBtn").click(function(){
-      let vid = $("#vid").val()
+      let vid = $("#vid").val();
+      let model = $("#model").val();
       let body = {
-        "vid": vid
+        "vid": vid,
+        "model": model
       }
       $("#spinnerLoading").show()
       $.ajax({
