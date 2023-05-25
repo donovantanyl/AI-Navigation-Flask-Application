@@ -50,3 +50,4 @@ setuptools>=65.5.1 # Snyk vulnerability fix
 
 Flask~=2.2.3
 roboflow
+httplib2

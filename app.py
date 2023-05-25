@@ -1,10 +1,13 @@
+import json
 import os
 
 from flask import Flask, render_template, request, jsonify
 
 import bus_detection
 import label_automation
+from classes.lta_api import bus_order
 from classes.roboflow_api import RoboflowAPI
+import multiprocessing
 
 app = Flask(__name__, template_folder='templates')
 app.debug = True
@@ -24,8 +27,31 @@ def index():
 
 @app.route("/bus_navigation")
 def bus_navigation():
-    bus_detection.run()
     return render_template("bus_navigation.html", )
+
+
+@app.route("/start_bus_detection", methods=['GET', 'POST'])
+def start_bus_detection():
+    if request.method == "POST":
+        bus_code = str(request.form.get("code"))
+        print(bus_code)
+        api_thread = multiprocessing.Process(target=bus_order, args=(bus_code, "8w9wm+lqSE+R720jfwR+Ew=="))
+        detection_thread = multiprocessing.Process(target=bus_detection.run,
+                                                   args=("instance/models/bus_v2.pt",
+                                                         "instance/uploads/bus_vid_part2.mp4"))
+        #api_thread.start()
+        detection_thread.start()
+    return jsonify(message="Success",
+                   statusCode=200)
+
+
+@app.route("/bus_result", methods=['GET', 'POST'])
+def bus_result():
+    json_file = open("live_data/bus_labels.json", "r")
+    result = json.load(json_file)
+    return jsonify(message="Success",
+                   statusCode=200,
+                   data=result)
 
 
 @app.route("/training")
