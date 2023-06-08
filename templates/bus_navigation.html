@@ -32,7 +32,7 @@
         }
         $.ajax({
             type: "POST",
-            url: "http://127.0.0.1:5000/start_bus_detection",
+            url: "/start_bus_detection",
             data: body,
             success: function(data, status, jqXHR) {
                 console.log("Success")
@@ -41,7 +41,7 @@
         console.log(body)
         //fetch(`http://127.0.0.1:5000/start_bus_detection`)
         apiInterval = setInterval(async function (){
-            const response = await fetch(`http://127.0.0.1:5000/bus_result`)
+            const response = await fetch(`/bus_result`)
             const jsonData = await response.json();
             console.log(jsonData.data)
             $("#bus").text(jsonData.data)

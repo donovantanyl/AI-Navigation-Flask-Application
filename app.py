@@ -2,6 +2,7 @@ import json
 import os
 
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 
 import bus_detection
 import label_automation
@@ -10,6 +11,7 @@ from classes.roboflow_api import RoboflowAPI
 import multiprocessing
 
 app = Flask(__name__, template_folder='templates')
+CORS(app, origins=["http://172.20.10.*","http://192.168.*","http://localhost:5000"])
 app.debug = True
 
 uploads_dir = os.path.join(app.instance_path, 'uploads')
@@ -37,8 +39,10 @@ def start_bus_detection():
         print(bus_code)
         api_thread = multiprocessing.Process(target=bus_order, args=(bus_code, "8w9wm+lqSE+R720jfwR+Ew=="))
         detection_thread = multiprocessing.Process(target=bus_detection.run,
-                                                   args=("instance/models/bus_v2.pt",
-                                                         "instance/uploads/bus_vid_part2.mp4"))
+                                                   args=("instance/models/bus_v2.pt",0))
+        #arg 0 for webcam, or put files e.g. instance/uploads/bus_vid_part2.mp4
+
+
         #api_thread.start()
         detection_thread.start()
     return jsonify(message="Success",
