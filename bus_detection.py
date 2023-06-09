@@ -162,17 +162,17 @@ def run(
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 # [WK] Defined Lists
-                bb_nums = []  # Contains list of BoundingBox object of numbers
+                bb_nums = []  # Contains list of BoundingBox object of bus numbers
                 bb_bus = []  # Contains list of BoundingBox object of buses
-                lbl_raw = []  # Contains list of String of bus numbers
+                lbl_raw = []  # Contains list of String of finalised bus numbers
 
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
                     # Creating BoundingBox object
                     bb = BoundingBox(names[int(cls)], conf, xyxy)
-                    if len(bb.get_label()) == 1:
+                    if bb.get_label().isdigit() == True:
                         bb_nums.append(bb)
-                    elif bb.get_label() == "Bus":
+                    elif bb.get_label() == "bus":
                         bb_bus.append(bb)
 
                     if save_txt:  # Write to file
@@ -190,27 +190,28 @@ def run(
 
                 # Sorting bus numbers based on x-coordinate
                 bb_nums = sorted(bb_nums, key=lambda b: b.get_x1())
-                confs = []
+                confs = {}
                 min_conf = 0.2
 
-                # If no bus is detected
+                # If no bus is detected --> requires higher confidence threshold
                 if len(bb_bus) == 0:
-                    total_conf = 0
-                    temp_bus = ""
-                    for num in bb_nums:
-                        temp_bus += num.get_label()
-                        total_conf += num.get_conf()
+                    min_conf = 0.5
+                    
+                temp_bus = []
+                for num in bb_nums:
+                    temp_bus.append(num.get_label())
+                    confs[num.get_label()] = num.get_conf()
 
-                    # Check if something is detected
-                    if len(temp_bus) > 0:
-                        # Check if average confidence is above set min confidence
-                        print(total_conf / len(temp_bus))
-                        if total_conf / len(temp_bus) > min_conf:
-                            lbl_raw.append(temp_bus)
-                            confs.append(round(total_conf / len(temp_bus), 2))
-                    print("Label Raw:", str(lbl_raw))
+                # Check if something is detected
+                if len(temp_bus) > 0:
+                    # Check which number has highest confidence, can only print one bus number
+                    busnumber = max(confs)
+                    print("confidence level of {}: {}".format(busnumber, confs[busnumber])) 
+                    if confs[busnumber] > min_conf:
+                        lbl_raw.append(busnumber)
+                print("Label Raw:", str(lbl_raw))
 
-                lbl_bus = []
+                #lbl_bus = []
                 json_file = open("live_data/bus_labels.json", "w")
                 json.dump(lbl_raw, json_file)
 
