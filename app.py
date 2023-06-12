@@ -2,7 +2,7 @@ import json
 import os
 
 from flask import Flask, render_template, request, jsonify
-
+from datetime import datetime
 import bus_detection
 import label_automation
 from classes.lta_api import bus_order
@@ -35,11 +35,11 @@ def start_bus_detection():
     if request.method == "POST":
         bus_code = str(request.form.get("code"))
         print(bus_code)
-        api_thread = multiprocessing.Process(target=bus_order, args=(bus_code, "8w9wm+lqSE+R720jfwR+Ew=="))
+        # api_thread = multiprocessing.Process(target=bus_order, args=(bus_code, "8w9wm+lqSE+R720jfwR+Ew=="))
         detection_thread = multiprocessing.Process(target=bus_detection.run,
                                                    args=("instance/models/bus_v2.pt",
                                                          "instance/uploads/bus_vid_part2.mp4"))
-        #api_thread.start()
+        # api_thread.start()
         detection_thread.start()
     return jsonify(message="Success",
                    statusCode=200)
@@ -74,8 +74,10 @@ def upload():
     if request.method == "GET":  # Get all videos in the uploads folder
         vid_list = []
         for videos in os.listdir(uploads_dir):
-            if videos.endswith(".mp4"):
+            if videos.endswith(".mp4") or videos.endswith(".jpg") or videos.endswith(".png"):
                 vid_list.append(videos)
+        for directories in next(os.walk(uploads_dir))[1]:
+            vid_list.append(directories)
         return jsonify(message="Success",
                        statusCode=200,
                        data=vid_list)
@@ -97,13 +99,25 @@ def upload():
 @app.route("/predict", methods=['GET', 'POST'])
 def predict():
     if request.method == "POST":
+        # Create extracted image folder
+        timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+        img_path = f'{output_dir}\\{timestamp}'
+        os.mkdir(img_path)
+
         vid = request.form.get("vid")
         model_used = request.form.get("model")
-        folder = label_automation.run(weights=f"instance/models/{model_used}", source=f"instance/uploads/{vid}")
-        print(folder)
+        if vid.endswith(".jpg") or vid.endswith(".png") or vid.endswith(".mp4"):
+            label_automation.run(weights=f"instance/models/{model_used}",
+                                 source=f"instance/uploads/{vid}",
+                                 img_path=img_path)
+        elif "." not in vid:
+            for videos in os.listdir(f"{uploads_dir}/{vid}"):
+                label_automation.run(weights=f"instance/models/{model_used}",
+                                     source=f"instance/uploads/{vid}/{videos}",
+                                     img_path=img_path)
         return jsonify(message="Success",
                        statusCode=200,
-                       data=folder)
+                       data=timestamp)
 
 
 @app.route("/models", methods=['GET', 'POST'])

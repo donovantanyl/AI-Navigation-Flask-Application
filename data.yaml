@@ -1,5 +1,13 @@
 train: ../train/images
 val: ../valid/images
+test: ../test/images
 
-nc: 17
-names: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'Bus', 'E', 'G', 'M', 'W', 'e']
+nc: 4
+names: ['858', '859', '980', '981']
+
+roboflow:
+  workspace: notweewyekeong-gmail-com
+  project: ai-navigation-combined-bus-numbers
+  version: 2
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/notweewyekeong-gmail-com/ai-navigation-combined-bus-numbers/dataset/2

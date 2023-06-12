@@ -1,4 +1,5 @@
 import datetime
+import yaml
 
 now = datetime.datetime.now()
 
@@ -19,6 +20,7 @@ class COCO:
                 "name": "CC BY 4.0"
             }
         ]
+        """
         self.__categories = [{"id": 0, "name": "Numbers", "supercategory": "none"},
                              {"id": 1, "name": "0", "supercategory": "Numbers"},
                              {"id": 2, "name": "1", "supercategory": "Numbers"},
@@ -37,7 +39,19 @@ class COCO:
                              {"id": 15, "name": "M", "supercategory": "Numbers"},
                              {"id": 16, "name": "W", "supercategory": "Numbers"},
                              {"id": 17, "name": "e", "supercategory": "Numbers"}]
-
+        """
+        """
+        self.__categories = [{"id": 0, "name": "Numbers", "supercategory": "none"},
+                             {"id": 1, "name": "858", "supercategory": "Numbers"},
+                             {"id": 2, "name": "859", "supercategory": "Numbers"},
+                             {"id": 3, "name": "980", "supercategory": "Numbers"},
+                             {"id": 4, "name": "981", "supercategory": "Numbers"}]
+        """
+        self.__categories = [{"id": 0, "name": "Numbers", "supercategory": "none"}]
+        categories = get_categories_yaml()
+        for i in range(len(categories)):
+            cat_obj = {"id": i + 1, "name": categories[i], "supercategory": "none"}
+            self.__categories.append(cat_obj)
         self.__images = images
         self.__annotations = annotations
 
@@ -92,3 +106,15 @@ class Annotation:
             "iscrowd": 0
         }
         return output
+
+
+def get_categories_yaml():
+    with open("data.yaml", "r") as stream:
+        try:
+            data = yaml.safe_load(stream)
+            return data.get("names")
+        except yaml.YAMLError as exc:
+            print(exc)
+
+
+get_categories_yaml()
