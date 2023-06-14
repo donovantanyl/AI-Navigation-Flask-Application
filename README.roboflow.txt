@@ -1,8 +1,8 @@
 
-bus-route-number-fyp - v11 2023-06-14 10:06am
+bus-route-number-fyp - v15 2023-06-14 1:48pm
 ==============================
 
-This dataset was exported via roboflow.com on June 14, 2023 at 2:07 AM GMT
+This dataset was exported via roboflow.com on June 14, 2023 at 5:49 AM GMT
 
 Roboflow is an end-to-end computer vision platform that helps you
 * collaborate with your team on computer vision projects
@@ -17,7 +17,7 @@ visit https://github.com/roboflow/notebooks
 
 To find over 100k other datasets and pre-trained models, visit https://universe.roboflow.com
 
-The dataset includes 842 images.
+The dataset includes 844 images.
 Bus-route-number are annotated in YOLO v5 PyTorch format.
 
 The following pre-processing was applied to each image:
