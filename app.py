@@ -35,7 +35,6 @@ def start_bus_detection():
     if request.method == "POST":
         bus_code = str(request.form.get("code"))
         print(bus_code)
-        # api_thread = multiprocessing.Process(target=bus_order, args=(bus_code, "8w9wm+lqSE+R720jfwR+Ew=="))
         detection_thread = multiprocessing.Process(target=bus_detection.run,
                                                    args=("instance/models/bus_v2.pt",
                                                          "instance/uploads/bus_vid_part2.mp4"))
