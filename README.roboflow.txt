@@ -1,8 +1,8 @@
 
-bus-route-number-fyp - v5 2023-06-09 4:25pm
+bus-route-number-fyp - v11 2023-06-14 10:06am
 ==============================
 
-This dataset was exported via roboflow.com on June 9, 2023 at 8:26 AM GMT
+This dataset was exported via roboflow.com on June 14, 2023 at 2:07 AM GMT
 
 Roboflow is an end-to-end computer vision platform that helps you
 * collaborate with your team on computer vision projects
@@ -17,15 +17,14 @@ visit https://github.com/roboflow/notebooks
 
 To find over 100k other datasets and pre-trained models, visit https://universe.roboflow.com
 
-The dataset includes 844 images.
+The dataset includes 842 images.
 Bus-route-number are annotated in YOLO v5 PyTorch format.
 
 The following pre-processing was applied to each image:
-* Auto-orientation of pixel data (with EXIF-orientation stripping)
-* Resize to 640x640 (Stretch)
-* Auto-contrast via adaptive equalization
 
 The following augmentation was applied to create 3 versions of each source image:
-* Random shear of between -30° to +30° horizontally and -24° to +24° vertically
+
+The following transformations were applied to the bounding boxes of each image:
+* Random brigthness adjustment of between -25 and +25 percent
 
 
