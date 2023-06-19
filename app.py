@@ -2,6 +2,7 @@ import json
 import os
 
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 from datetime import datetime
 import bus_detection
 import label_automation
@@ -10,6 +11,7 @@ from classes.roboflow_api import RoboflowAPI
 import multiprocessing
 
 app = Flask(__name__, template_folder='templates')
+CORS(app, origins=["http://172.20.10.*","http://192.168.*","http://localhost:5000"])
 app.debug = True
 
 uploads_dir = os.path.join(app.instance_path, 'uploads')
