@@ -53,6 +53,7 @@ def bus_order(bus_code, api_key):
         sorted_bus_list = list(map(lambda x: x.get_num(),
                                    filter(lambda y: y.get_est() < datetime.now() + timedelta(minutes=3),
                                           sorted(bus_list, key=lambda x: x.get_est()))))
+        print(sorted_bus_list)
 
 
 # Check if you can parse as datetime object

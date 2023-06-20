@@ -25,6 +25,8 @@ The following pre-processing was applied to each image:
 The following augmentation was applied to create 3 versions of each source image:
 
 The following transformations were applied to the bounding boxes of each image:
+
+The following transformations were applied to the bounding boxes of each image:
 * Random brigthness adjustment of between -25 and +25 percent
 
 

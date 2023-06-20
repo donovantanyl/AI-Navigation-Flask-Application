@@ -48,12 +48,14 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 from models.common import DetectMultiBackend
 from utils.dataloaders import IMG_FORMATS, VID_FORMATS, LoadImages, LoadScreenshots, LoadStreams
 from utils.general import (LOGGER, Profile, check_file, check_img_size, check_imshow, check_requirements, colorstr, cv2,
-                           increment_path, non_max_suppression, print_args, scale_boxes, strip_optimizer, xyxy2xywh, xyxy2x1y1wh)
+                           increment_path, non_max_suppression, print_args, scale_boxes, strip_optimizer, xyxy2xywh,
+                           xyxy2x1y1wh)
 from utils.plots import Annotator, colors, save_one_box
 from utils.torch_utils import select_device, smart_inference_mode
 
 from datetime import datetime
 from uuid import uuid4
+
 
 @smart_inference_mode()
 def run(
@@ -84,6 +86,7 @@ def run(
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
         vid_stride=1,  # video frame-rate stride
+        img_path=None
 ):
     source = str(source)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
@@ -97,12 +100,6 @@ def run(
     # Directories
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
     (save_dir / 'labels' if save_txt else save_dir).mkdir(parents=True, exist_ok=True)  # make dir
-
-    # [WK] Create extracted image file
-    timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-    os_path = 'instance/outputs'
-    img_path = f'{os_path}\\{timestamp}'
-    os.mkdir(img_path)
 
     # Load model
     device = select_device(device)
@@ -189,7 +186,7 @@ def run(
                     # [WK] Set boolean variable when a bus is detected
                     is_bus = True
                     # [WK] Write results to a Label Object
-                    #label_obj = Label(names[int(cls)], conf, xyxy, r_im0_shape[0], r_im0_shape[1])
+                    # label_obj = Label(names[int(cls)], conf, xyxy, r_im0_shape[0], r_im0_shape[1])
                     xywh = (xyxy2x1y1wh(torch.tensor(xyxy).view(1, 4))).view(-1).tolist()
                     annotation = Annotation(label_count, image_count, int(cls), xywh)
                     annotations.append(annotation.return_json())
@@ -215,7 +212,7 @@ def run(
                     image_count += 1
 
                 final_json = COCO(images, annotations)
-                print(final_json.return_json())
+                # print(final_json.return_json())
                 with open(f'{img_path}\\{image_id}.json', "w") as outfile:
                     outfile.write(json.dumps(final_json.return_json(), indent=4))
 
@@ -250,7 +247,7 @@ def run(
 
         # Print time (inference-only)
         LOGGER.info(f"{s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
-    return timestamp
+    return
 
 
 def parse_opt():
