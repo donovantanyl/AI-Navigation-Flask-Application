@@ -163,6 +163,7 @@ def run(
             s += '%gx%g ' % im.shape[2:]  # print string
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             imc = im0.copy() if save_crop else im0  # for save_crop
+            # added r_im0
             r_im0 = im0.copy()
             r_im0_shape = r_im0.shape
             annotator = Annotator(im0, line_width=line_thickness, example=str(names))
@@ -212,7 +213,7 @@ def run(
                     image_count += 1
 
                 final_json = COCO(images, annotations)
-                # print(final_json.return_json())
+                #print(final_json.return_json())
                 with open(f'{img_path}\\{image_id}.json', "w") as outfile:
                     outfile.write(json.dumps(final_json.return_json(), indent=4))
 

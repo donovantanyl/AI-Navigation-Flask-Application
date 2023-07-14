@@ -4,64 +4,101 @@
     <meta charset="UTF-8">
     <title>AI Navigation App</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/4.7.95/css/materialdesignicons.css" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Automatic Labelling with Machine Learning</h1>
-    <h2>Step 1:</h2>
-    <div class="form-group">
-        <label for="vid">Select your Video to Upload</label>
-        <select class="form-select" id="vid" name="vid">
+  <div class="container my-4">
+    <div class="col-9">
+      <h1 class="fw-bold">Automatic Labelling with Machine Learning</h1>
+
+      <div class="spinner-border spinner-border-sm spinnerLoading" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+
+      <h2>Step 1: Labelling</h2>
+      <small class="text-muted">Supports .mp4, .jpeg and .MOV files.</small>
+      <div class="form-group my-2">
+          <label for="vid">Select your video to upload</label>
+          <select class="form-select" id="vid" name="vid">
+          </select>
+          <small id="nameHelp" class="form-text text-muted">Upload your videos to <strong>instance/uploads</strong> folder.</small>
+      </div>
+      <div class="form-group my-2">
+        <label for="model">Select your model to run auto-labelling</label>
+        <select class="form-select" id="model" name="model">
         </select>
-        <small id="nameHelp" class="form-text text-muted">Upload your videos to instance/uploads folder.</small>
+        <small id="nameHelp" class="form-text text-muted">Upload your models to <strong>instance/models</strong> folder.</small>
     </div>
-    <div class="form-group">
-      <label for="model">Select your Model to run auto-labelling</label>
-      <select class="form-select" id="model" name="model">
-      </select>
-      <small id="nameHelp" class="form-text text-muted">Upload your models to instance/models folder.</small>
-  </div>
-    <button type="button" id="predictBtn" class="btn btn-primary">Start Label</button>
-    <br>
-    <div class="spinner-border text-primary" role="status" id="spinnerLoading">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-    <hr>
-    <div id="postForm">
-      <h2>Step 2:</h2>
-      <div class="form-group">
-        <label for="apiKey">Output Folder</label>
-        <input type="text" class="form-control" id="folder" name="folder" disabled>
+      <button type="button" id="predictBtn" class="btn btn-primary my-2">Start Label</button>
+      <br>
+      <small class="form-text text-danger" id="predictError">! Error message</small>
+      <small class="form-text text-success fw-bold" id="predictSuccess"><span class="mdi mdi-check-circle-outline"></span></small>
+      <hr>
+
+      <div id="alertAppear"></div>
+      <div class="alert alert-success alert-dismissible fade show" id="alertBlueprint" role="alert">
+        <span class="mdi mdi-check-circle-outline"></span>
+        Successfully uploaded to Roboflow project!
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
-      <div class="form-group">
-        <label for="apiKey">API Key</label>
-        <input type="text" class="form-control" id="apiKey" name="apiKey" placeholder="Enter your Roboflow API Key">
-        <small id="apiKeyHelp" class="form-text text-muted">We'll never share your API Key with anyone else.</small>
+
+      <div id="postForm">
+        <h2>Step 2: Uploading to Roboflow</h2>
+        <div class="form-group my-2">
+          <label for="apiKey">Output Folder</label>
+          <input type="text" class="form-control" id="folder" name="folder" disabled>
+        </div>
+        <div class="form-group">
+          <label for="apiKey">API Key</label>
+          <div class="input-group my-2">
+              <div class="input-group-append toggle-password">
+                  <span class="btn btn-outline-secondary input-group-text mdi mdi-eye-outline"></span>
+              </div>
+              <input type="password" class="form-control" id="apiKey" name="api-Key" autocomplete="new-password" minlength="6" placeholder="Enter your private Roboflow API key">
+          </div>
+          <small id="apiKeyHelp" class="form-text text-muted">We'll never share your API key with anyone else.</small>
+        </div>
+        <div class="form-group my-2">
+          <label for="projectID" disabled>Select your Project ID</label>
+          <select class="form-select" id="projectID">
+          </select>
+        </div>
+        <button type="button" id="uploadBtn" class="btn btn-primary my-2">Submit</button>
+        <br>
+        <small class="form-text text-danger fw-bold" id="uploadError">! Error message</small>
       </div>
-      <div class="form-group">
-        <label for="projectID">Select your Project ID</label>
-        <select class="form-select" id="projectID">
-        </select>
-      </div>
-      <button type="button" id="uploadBtn" class="btn btn-primary">Submit</button>
     </div>
   </div>
 
 </body>
 </html>
 <script>
+    $('.toggle-password').click(function(){
+        $(this).children().toggleClass('mdi-eye-outline mdi-eye-off-outline');
+        $(this).children().toggleClass('btn-outline-secondary btn-outline-primary');
+        let input = $(this).next();
+        input.attr('type', input.attr('type') === 'password' ? 'text' : 'password');
+    });
+
     $("#apiKey").blur(() => {
       $("#projectID").html("")
       getProjectIDs($("#apiKey").val())
     })
 
     async function getProjectIDs(apiKey) {
-      const response  = await fetch(`http://127.0.0.1:5000/projects/${apiKey}`)
-      const jsonData = await response.json();
-      console.log(jsonData);
-      jsonData.data.map(pid => $("#projectID").append(`<option>${pid}</option>`))
+      try {
+        const response  = await fetch(`http://127.0.0.1:5000/projects/${apiKey}`)
+        const jsonData = await response.json();
+        console.log(jsonData);
+        jsonData.data.map(pid => $("#projectID").append(`<option>${pid}</option>`))
+        $("#projectID").prop("disabled", false);
+      }
+      catch (error) {
+        console.log(error)
+        $("#projectID").prop("disabled", true);
+      };
     }
 
     async function getVid() {
@@ -79,30 +116,52 @@
     getVid();
     getModel();
 
-    $("#spinnerLoading").hide();
+    $(".spinnerLoading").hide();
     $("#postForm").hide();
+    $("#alertBlueprint").hide();
+    $("#predictError").hide();
+    $("#uploadError").hide();
+    $("#predictSuccess").hide();
 
     $("#predictBtn").click(function(){
+      $("#predictError").hide();
       let vid = $("#vid").val();
       let model = $("#model").val();
       let body = {
         "vid": vid,
         "model": model
       }
-      $("#spinnerLoading").show()
+      $("#predictBtn").removeClass('btn-disabled');
+      $("#predictBtn").prop("disabled", true);
+      $("#predictBtn").text(' Labelling...');
+      $('.spinnerLoading').clone().prependTo($('#predictBtn')).show();
+      
       $.ajax({
         type: "POST",
         url: "http://127.0.0.1:5000/predict",
         data: body,
         success: function(data, status, jqXHR) {
-          $("#spinnerLoading").hide();
-          $("#postForm").show();
-          $("#folder").val(data.data)
+          $("#predictBtn .spinnerLoading").remove();
+          $("#predictBtn").prop("disabled", false);
+          $("#predictBtn").text('Re-label');
+          $("#postForm").fadeIn();
+          $("#projectID").prop("disabled", true);
+          $("#predictSuccess").text(` Successfully labelled to folder ${data.data}! You may now proceed with step 2.`);
+          $("#predictSuccess").fadeIn();
+          $("#folder").val(data.data);
           console.log(data.data)
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          $('#predictError').show();
+          $('#predictError').text('! Error, '+textStatus);
         }
       })
     })
+
   $("#uploadBtn").click(function(){
+    $("#predictSuccess").hide();
+    errorText = "";
+    $("#uploadError").hide();
     let folder = $("#folder").val()
     let apiKey = $("#apiKey").val()
     let project = $("#projectID").val()
@@ -111,12 +170,38 @@
       "apiKey": apiKey,
       "project": project
     }
+
+    if (apiKey == "") {
+      errorText = 'API key cannot be blank.';
+    }
+    else if (project == null) {
+      errorText = 'there are no projects in the provided workspace. Please ensure you have entered a valid API key.';
+    }
+    else if (folder == null) {
+      errorText = 'there is no folder provided. Please try re-labelling.';
+    }
+
+    if (errorText != "") {
+      $("#uploadError").show();
+      $("#uploadError").text('! Error, ' + errorText);
+      return;
+    }
+
+    $("#uploadBtn").removeClass('btn-disabled');
+    $("#uploadBtn").prop("disabled", true);
+    $("#uploadBtn").text(' Uploading...');
+    $('.spinnerLoading').clone().prependTo($('#uploadBtn')).show();
+
     $.ajax({
       type: "POST",
       url: "http://127.0.0.1:5000/upload",
       data: body,
       success: function(data, status, jqXHR) {
-        window.location.replace("https://app.roboflow.com/")
+        $("#uploadBtn .spinnerLoading").remove()
+        $("#uploadBtn").prop("disabled", false);
+        $("#uploadBtn").text('Re-upload');
+        $('#alertBlueprint').clone().appendTo($('#alertAppear')).fadeIn();
+        //window.location.replace("https://app.roboflow.com/")
       }
     })
   })

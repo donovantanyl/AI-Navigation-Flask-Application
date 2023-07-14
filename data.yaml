@@ -2,12 +2,12 @@ train: ../train/images
 val: ../valid/images
 test: ../test/images
 
-nc: 10
-names: ['159', '45', '50', '72', '72A', '72B', 'bus', 'green-traffic', 'red-traffic', 'traffic-light']
+nc: 11
+names: ['159', '159B', '45', '50', '72', '72A', '72B', 'bus', 'green-traffic', 'red-traffic', 'traffic-light']
 
 roboflow:
   workspace: test-project-csgdb
   project: bus-route-number-fyp
-  version: 15
+  version: 29
   license: CC BY 4.0
-  url: https://universe.roboflow.com/test-project-csgdb/bus-route-number-fyp/dataset/15
+  url: https://universe.roboflow.com/test-project-csgdb/bus-route-number-fyp/dataset/29

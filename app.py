@@ -29,6 +29,23 @@ def index():
 
 @app.route("/bus_navigation")
 def bus_navigation():
+
+    # Resetting of data
+    '''
+    lbl_data = {
+        "label": '',
+        "update": False,
+        "last_updated": ""
+    }
+    json_file = open("live_data/bus_labels.json", "w")
+    json.dump(lbl_data, json_file)
+    json_file.close()
+    json_file_final = open("live_data/final_bus_labels.json", "w")
+    json.dump(lbl_data, json_file_final)
+    json_file_final.close()       
+    '''
+     
+
     return render_template("bus_navigation.html", )
 
 
@@ -37,8 +54,11 @@ def start_bus_detection():
     if request.method == "POST":
         bus_code = str(request.form.get("code"))
         print(bus_code)
+        #detection_thread = multiprocessing.Process(target=bus_detection.run,
+        #                                           args=("instance/models/bus_trafficlight_27jun.pt",0,"--conf-thres",0.9))
         detection_thread = multiprocessing.Process(target=bus_detection.run,
-                                                   args=("instance/models/bus_v2.pt",0))
+                                                   args=("instance/models/bus_trafficlight_27jun.pt",0),
+                                                   kwargs={'conf_thres': 0.9})       
         #arg 0 for webcam, or put files e.g. instance/uploads/bus_vid_part2.mp4
 
 
@@ -50,8 +70,10 @@ def start_bus_detection():
 
 @app.route("/bus_result", methods=['GET', 'POST'])
 def bus_result():
-    json_file = open("live_data/bus_labels.json", "r")
-    result = json.load(json_file)
+    #json_file = open("live_data/bus_labels.json", "r")
+    #result = json.load(json_file)
+    with open('live_data/output_labels.json') as json_file:
+        result = json.load(json_file)
     return jsonify(message="Success",
                    statusCode=200,
                    data=result)
@@ -77,7 +99,7 @@ def upload():
     if request.method == "GET":  # Get all videos in the uploads folder
         vid_list = []
         for videos in os.listdir(uploads_dir):
-            if videos.endswith(".mp4") or videos.endswith(".jpg") or videos.endswith(".png"):
+            if videos.endswith(".mp4") or videos.endswith(".jpg") or videos.endswith(".png") or videos.endswith(".MOV"):
                 vid_list.append(videos)
         for directories in next(os.walk(uploads_dir))[1]:
             vid_list.append(directories)
@@ -109,11 +131,11 @@ def predict():
 
         vid = request.form.get("vid")
         model_used = request.form.get("model")
-        if vid.endswith(".jpg") or vid.endswith(".png") or vid.endswith(".mp4"):
+        if vid.endswith(".jpg") or vid.endswith(".png") or vid.endswith(".mp4") or vid.endswith(".MOV"):
             label_automation.run(weights=f"instance/models/{model_used}",
                                  source=f"instance/uploads/{vid}",
                                  img_path=img_path)
-        elif "." not in vid:
+        elif "." not in vid: # Directory traversal (since no .extension its a folder)
             for videos in os.listdir(f"{uploads_dir}/{vid}"):
                 label_automation.run(weights=f"instance/models/{model_used}",
                                      source=f"instance/uploads/{vid}/{videos}",

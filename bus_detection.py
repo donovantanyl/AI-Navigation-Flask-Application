@@ -52,6 +52,8 @@ from utils.torch_utils import select_device, smart_inference_mode
 from classes.bounding_box import BoundingBox
 import json
 
+from datetime import datetime
+
 @smart_inference_mode()
 def run(
         weights=ROOT / 'yolov5s.pt',  # model path or triton URL
@@ -113,6 +115,10 @@ def run(
         dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=vid_stride)
     vid_path, vid_writer = [None] * bs, [None] * bs
 
+
+    # Defined variable
+    frame_count = [] # Used for keeping track of frames with detected objects
+
     # Run inference
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
@@ -152,6 +158,12 @@ def run(
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             imc = im0.copy() if save_crop else im0  # for save_crop
             annotator = Annotator(im0, line_width=line_thickness, example=str(names))
+
+            lbl_raw = {         # Contains String of finalised traffic light and bus numbers
+                'light': '',
+                'number': []
+            }
+
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()
@@ -162,18 +174,22 @@ def run(
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 # [WK] Defined Lists
-                bb_nums = []  # Contains list of BoundingBox object of bus numbers
-                bb_bus = []  # Contains list of BoundingBox object of buses
-                lbl_raw = []  # Contains list of String of finalised bus numbers
+                bb_nums = []        # Contains list of BoundingBox object of bus numbers
+                bb_bus = []         # Contains list of BoundingBox object of buses
+                bb_lights = []      # Contains list of BoundingBox object of pedestrian lights
+                
 
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
                     # Creating BoundingBox object
                     bb = BoundingBox(names[int(cls)], conf, xyxy)
-                    if bb.get_label().isdigit() == True:
+                    #if bb.get_label().isdigit() == True:
+                    if any(char.isdigit() for char in bb.get_label()) == True: #checks if theres any digits within the label (means its a bus number)
                         bb_nums.append(bb)
                     elif bb.get_label() == "bus":
                         bb_bus.append(bb)
+                    elif bb.get_label() == "green-traffic" or bb.get_label == "red-traffic":
+                        bb_lights.append(bb)
 
                     if save_txt:  # Write to file
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
@@ -190,30 +206,100 @@ def run(
 
                 # Sorting bus numbers based on x-coordinate
                 bb_nums = sorted(bb_nums, key=lambda b: b.get_x1())
-                confs = {}
-                min_conf = 0.2
+                num_confs = {}
+
+                light_confs = {}
+                bus_min_conf = 0.2
+                light_min_conf = 0.7
+
+
 
                 # If no bus is detected --> requires higher confidence threshold
                 if len(bb_bus) == 0:
-                    min_conf = 0.5
+                    bus_min_conf = 0.5
                     
                 temp_bus = []
                 for num in bb_nums:
                     temp_bus.append(num.get_label())
-                    confs[num.get_label()] = num.get_conf()
+                    num_confs[num.get_label()] = num.get_conf()
 
                 # Check if something is detected
                 if len(temp_bus) > 0:
-                    # Check which number has highest confidence, can only print one bus number
-                    busnumber = max(confs)
-                    print("confidence level of {}: {}".format(busnumber, confs[busnumber])) 
-                    if confs[busnumber] > min_conf:
-                        lbl_raw.append(busnumber)
-                print("Label Raw:", str(lbl_raw))
+                    # Check which number has highest confidence
+                    for busnumber in num_confs:
+                        print("confidence level of {}: {}".format(busnumber, num_confs[busnumber])) 
+                        if num_confs[busnumber] > bus_min_conf:
+                            lbl_raw['number'].append(busnumber)
+                if len(bb_lights) > 0:
+                    # Can only print one pedestrian light
+                    for light in bb_lights:
+                        print("confidence level of {}: {}".format(light, light.get_conf())) 
+                        light_confs[light.get_label()] = light.get_conf()
+                    
+                    final_light = max(light_confs) # Gets most confident
+                    if light_confs[final_light] > light_min_conf:
+                        lbl_raw['light'] = final_light         
 
-                #lbl_bus = []
-                json_file = open("live_data/bus_labels.json", "w")
-                json.dump(lbl_raw, json_file)
+
+            # Defined variables
+            frame_threshold = 15 # Will be used for determining when a number is updated
+            # will check frame_count reaches frame_threshold before updating
+            # read the .json file to check if theres already any number, if there is and a new number is detected
+            # then will check with the 
+            
+            current_datetime = datetime.now().strftime("%Y%m%dT%H%M%S")
+            update_check = False
+            raw_dict = {}
+            current_labels = {}
+
+            import traceback
+            try:
+                with open('live_data/raw_labels.json', 'r') as json_file:
+                    raw_dict = json.load(json_file)
+                    print('THE JSON DICT IS', raw_dict)
+            except Exception as e:
+                traceback.print_exc()
+                #print('Error opening raw labels,', e)
+
+            if raw_dict != None:
+                current_labels = raw_dict['label']
+            
+            if lbl_raw == current_labels:
+                if len(frame_count) == 0:
+                    frame_count.append(lbl_raw)
+                elif len(frame_count) == frame_threshold:
+                    #has been same frame long enough, will update
+                    update_check = True
+                    frame_count = []
+                else:
+                    if frame_count[-1] == lbl_raw:
+                        frame_count.append(lbl_raw)
+                    else:
+                        # Reset frame count, may be sudden anomaly detection
+                        frame_count = []
+
+            print("New Frame count:", frame_count)
+                
+            print("Label Raw:", lbl_raw['number'])
+            print(lbl_raw['number'], 'has ', update_check)
+
+            # Outputting results to json
+
+            lbl_data = {
+                'label': lbl_raw,
+                'update': update_check,
+                'last_updated': current_datetime
+            }
+
+            try:
+                json_file = open("live_data/output_labels.json", "w")
+                json.dump(lbl_data, json_file)
+
+                json_file = open("live_data/raw_labels.json", "w")
+                json.dump(lbl_data, json_file)
+            except Exception as e:
+                traceback.print_exc()
+
 
             # Stream results
             im0 = annotator.result()

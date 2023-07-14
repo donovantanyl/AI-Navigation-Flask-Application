@@ -1,0 +1,21 @@
+
+
+.blue-button {
+    background-color:#02006F;
+
+}
+
+.blue-button:hover {
+    background-color:#002ED3;
+
+}
+
+.red-button {
+    background-color:#580404;
+
+}
+
+.red-button:hover {
+    background-color:#9F0202;
+
+}
