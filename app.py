@@ -58,7 +58,7 @@ def start_bus_detection():
         #                                           args=("instance/models/bus_trafficlight_27jun.pt",0,"--conf-thres",0.9))
         detection_thread = multiprocessing.Process(target=bus_detection.run,
                                                    args=("instance/models/bus_trafficlight_27jun.pt",0),
-                                                   kwargs={'conf_thres': 0.9})       
+                                                   kwargs={'conf_thres': 0.8})       
         #arg 0 for webcam, or put files e.g. instance/uploads/bus_vid_part2.mp4
 
 

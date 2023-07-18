@@ -52,7 +52,7 @@ from utils.torch_utils import select_device, smart_inference_mode
 from classes.bounding_box import BoundingBox
 import json
 
-from datetime import datetime
+import time
 
 @smart_inference_mode()
 def run(
@@ -188,7 +188,7 @@ def run(
                         bb_nums.append(bb)
                     elif bb.get_label() == "bus":
                         bb_bus.append(bb)
-                    elif bb.get_label() == "green-traffic" or bb.get_label == "red-traffic":
+                    elif bb.get_label() == "green-traffic" or bb.get_label() == "red-traffic":
                         bb_lights.append(bb)
 
                     if save_txt:  # Write to file
@@ -247,7 +247,7 @@ def run(
             # read the .json file to check if theres already any number, if there is and a new number is detected
             # then will check with the 
             
-            current_datetime = datetime.now().strftime("%Y%m%dT%H%M%S")
+            current_datetime = int( time.time_ns() / (1000)**3 ) # stored in Unix timestamp, number of secs since Jan 1 1970
             update_check = False
             raw_dict = {}
             current_labels = {}

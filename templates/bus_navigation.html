@@ -24,7 +24,7 @@
             <button type="button" id="stopBtn" class="btn btn-danger btn-lg red-button fw-bold">Stop</button>
             <hr>
             <h1>Bus: <span id="bus" aria-live="polite" class="fw-bold"></span></h1>
-            <h2><span class="badge bg-danger" aria-live=="polite" id="pedestrianLight">RED pedestrian light detected!</span></h1>
+            <h2><span class="badge bg-danger" aria-live="polite" id="pedestrianLight">RED pedestrian light detected!</span></h1>
             <p>Last Updated: <span id="updateTiming"></span></p>
         </div>
     </div>
@@ -32,11 +32,16 @@
 </html>
 <script>
     $(".bus-stop").hide()
-    $("#pedestrianLight").hide()
+    $("#pedestrianLight").text('')
     $("#startBtn").click(startDetection)
     $("#stopBtn").click(stopDetection)
     var apiInterval
     intervalCheck = false // used for repeating bus number
+    
+    
+    function getTimestampInSeconds() {
+        return Math.floor(Date.now() / 1000).toString()
+    }
 
     function updateBusNumber(busNumbers) {
         outputText = ""
@@ -54,7 +59,6 @@
     }
 
     function updateLight(pedestrianLight) {
-        $("#pedestrianLight").show()
         if (pedestrianLight == 'green-traffic') {
             $('#pedestrianLight').attr("class","badge bg-success");
             $('#pedestrianLight').text("GREEN pedestrian light detected!");
@@ -79,6 +83,8 @@
         })
         
         console.log(body)
+        lastUpdated = getTimestampInSeconds()
+
         //fetch(`http://127.0.0.1:5000/start_bus_detection`)
         apiInterval = setInterval(async function (){
             const response = await fetch(`/bus_result`)
@@ -91,7 +97,7 @@
             if (intervalCheck == false) {
                 intervalCheck = true
                 checkResult = setInterval(function () {
-                    if (jsonData.data['update'] != true && ($("#bus") != '' || $('#pedestrianLight').is(":visible"))) {
+                    if (jsonData.data['update'] != true && ($("#bus") != '' || $("#pedestrianLight") != '')) {
                         pedestrianLight = jsonData.data['label']['light']
                         busNumbers = jsonData.data['label']['number']
                         if (pedestrianLight) {
@@ -107,17 +113,22 @@
             }
 
             if (jsonData.data['update'] == true) { // only update when the json updates
-                clearInterval(checkResult)
-                pedestrianLight = jsonData.data['label']['light']
-                busNumbers = jsonData.data['label']['number']
-                if (pedestrianLight) {
-                    updateLight(pedestrianLight)
+                if (jsonData.data['last_updated'] != lastUpdated) {
+                    console.log('working' + jsonData.data['last_updated'] + '  vs  current' + getTimestampInSeconds())
+                    // To prevent "spam updating", will check UNIX timestamp for last updated ( or else will print a lot )
+                    clearInterval(checkResult)
+                    pedestrianLight = jsonData.data['label']['light']
+                    busNumbers = jsonData.data['label']['number']
+                    if (pedestrianLight) {
+                        updateLight(pedestrianLight)
+                    }
+                    else {
+                        $("#pedestrianLight").text("")
+                    }
+                    updateBusNumber(busNumbers)
+                    intervalCheck = false
+                    lastUpdated = getTimestampInSeconds()                          
                 }
-                else {
-                    $("#pedestrianLight").hide()
-                }
-                updateBusNumber(busNumbers)
-                intervalCheck = false
             }
         }, 10);
 
