@@ -53,6 +53,36 @@ from classes.bounding_box import BoundingBox
 import json
 
 import time
+import pyttsx3
+import threading
+
+# Setting up text to speech
+voice_engine = pyttsx3.init()
+speaking_rate = voice_engine.getProperty("rate")
+#print(speaking_rate)
+voice_engine.setProperty("rate", 150)
+
+def say(text: str) -> None:
+   """
+   Speak out text and print that text to the console.
+   """
+   voice_engine.say(text)
+   print("'{}' being spoken".format(text))
+
+
+   voice_engine.runAndWait()
+
+def readable_bus(busnumber): # Turns into properly read format (letters with numbers does not sound correct)
+    new_string = ""
+    for char in busnumber: # Splitting bus with letters in them so it is read correctly
+        if char.isalpha():
+            if char == "A":
+                char = "AA" # A is pronounced weirdly on its own
+            new_string = new_string + " " + char
+        else:
+            new_string += char
+    return new_string
+
 
 @smart_inference_mode()
 def run(
@@ -290,6 +320,30 @@ def run(
                 'update': update_check,
                 'last_updated': current_datetime
             }
+
+            voiced_text = ""
+
+            if update_check == True:
+                if lbl_raw['light']:
+                    pedestrian_light = lbl_raw['light']
+                    if pedestrian_light == "green-traffic":
+                        voiced_text = "Green pedestrian light"
+                    elif pedestrian_light == "red-traffic":
+                        voiced_text = "Red pedestrian light"
+                    voiced_text += " detected!"
+                if lbl_raw['number']:
+                    bus_list = lbl_raw['number']
+                    if len(bus_list) > 1:
+                        for j in range(len(bus_list)):
+                            bus = bus_list[j]
+                            voiced_text = voiced_text + "Bus " + readable_bus(bus)
+                            if j < len(bus_list)-1:
+                                voiced_text += " and "
+                    else:
+                        voiced_text = voiced_text + "Bus " + readable_bus(bus_list[0])
+                threading.Thread(
+                    target=say, args=(voiced_text,), daemon=True
+                ).start()
 
             try:
                 json_file = open("live_data/output_labels.json", "w")

@@ -48,7 +48,13 @@ setuptools>=65.5.1 # Snyk vulnerability fix
 # pycocotools>=2.0.6  # COCO mAP
 # ultralytics  # HUB https://hub.ultralytics.com
 
+
 Flask~=2.2.3
 Flask-Cors==3.0.10
 roboflow
 httplib2
+
+# Text to Speech ----------------------------------------------------------------------
+comtypes==1.2.0
+pypiwin32==223
+pyttsx3==2.90
