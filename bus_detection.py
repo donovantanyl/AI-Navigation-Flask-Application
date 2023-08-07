@@ -56,28 +56,27 @@ import time
 import pyttsx3
 import threading
 
-# Setting up text to speech
-voice_engine = pyttsx3.init()
-speaking_rate = voice_engine.getProperty("rate")
-#print(speaking_rate)
-voice_engine.setProperty("rate", 150)
+
 
 def say(text: str) -> None:
-   """
-   Speak out text and print that text to the console.
-   """
-   voice_engine.say(text)
-   print("'{}' being spoken".format(text))
-
-
-   voice_engine.runAndWait()
+    """
+    Speak out text and print that text to the console.
+    """
+    # Setting up text to speech
+    voice_engine = pyttsx3.init()
+    speaking_rate = voice_engine.getProperty("rate")
+    #print(speaking_rate)
+    voice_engine.setProperty("rate", 150)
+    voice_engine.say(text)
+    print("'{}' being spoken".format(text))
+    voice_engine.runAndWait()
 
 def readable_bus(busnumber): # Turns into properly read format (letters with numbers does not sound correct)
     new_string = ""
     for char in busnumber: # Splitting bus with letters in them so it is read correctly
         if char.isalpha():
             if char == "A":
-                char = "AA" # A is pronounced weirdly on its own
+                char = "Eh" # A is pronounced weirdly on its own
             new_string = new_string + " " + char
         else:
             new_string += char
@@ -323,7 +322,7 @@ def run(
 
             voiced_text = ""
 
-            if update_check == True:
+            if update_check == True and (lbl_raw['light'] or lbl_raw['number']):
                 if lbl_raw['light']:
                     pedestrian_light = lbl_raw['light']
                     if pedestrian_light == "green-traffic":
