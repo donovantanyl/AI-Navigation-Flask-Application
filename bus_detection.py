@@ -307,6 +307,10 @@ def run(
                         # Reset frame count, may be sudden anomaly detection
                         frame_count = []
 
+            # If pedestrian light, will skip this, needs real time announcing
+            if lbl_raw['light']:
+                update_check = True
+
             print("New Frame count:", frame_count)
                 
             print("Label Raw:", lbl_raw['number'])
@@ -326,20 +330,22 @@ def run(
                 if lbl_raw['light']:
                     pedestrian_light = lbl_raw['light']
                     if pedestrian_light == "green-traffic":
-                        voiced_text = "Green pedestrian light"
+                        voiced_text = "Green"
                     elif pedestrian_light == "red-traffic":
-                        voiced_text = "Red pedestrian light"
-                    voiced_text += " detected!"
+                        voiced_text = "Red"
+                    if lbl_raw['number']:
+                        # Connect
+                        voiced_text += " and "
                 if lbl_raw['number']:
                     bus_list = lbl_raw['number']
                     if len(bus_list) > 1:
                         for j in range(len(bus_list)):
                             bus = bus_list[j]
-                            voiced_text = voiced_text + "Bus " + readable_bus(bus)
+                            voiced_text = voiced_text + " " + readable_bus(bus)
                             if j < len(bus_list)-1:
                                 voiced_text += " and "
                     else:
-                        voiced_text = voiced_text + "Bus " + readable_bus(bus_list[0])
+                        voiced_text = voiced_text + " " + readable_bus(bus_list[0])
                 threading.Thread(
                     target=say, args=(voiced_text,), daemon=True
                 ).start()
